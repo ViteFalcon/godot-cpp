@@ -57,8 +57,6 @@ endif()
 set( compiler_is_clang "$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>>" )
 set( compiler_is_gnu "$<CXX_COMPILER_ID:GNU>" )
 set( compiler_is_msvc "$<CXX_COMPILER_ID:MSVC>" )
-=======
->>>>>>> dc74197 ({cmake} Use the same compiler warnings as godot)
 
 # Default build type is Debug in the SConstruct
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -110,11 +108,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
 	add_definitions(-DNOMINMAX)
 else()  # GCC/Clang
-	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-R,'$$ORIGIN'")
-
-	if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
-		set(GODOT_COMPILE_FLAGS "-fPIC")
-	endif()
 	set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -g")
 
 	if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -151,7 +144,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.c**)
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.h**)
 
 # Define our godot-cpp library
-add_library(${PROJECT_NAME} ${GODOT_LIB_TYPE}
+add_library(${PROJECT_NAME} STATIC
 		${SOURCES}
 		${HEADERS}
 		${GENERATED_FILES_LIST}
@@ -175,6 +168,9 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 	$<$<CONFIG:Debug>:
 		DEBUG_ENABLED
 		DEBUG_METHODS_ENABLED
+	>
+	$<${compiler_is_msvc}:
+		TYPED_METHOD_BIND
 	>
 )
 
