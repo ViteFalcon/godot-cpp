@@ -2,13 +2,12 @@
 # CMAKE_BUILD_TYPE:			Compilation target (Debug or Release defaults to Debug)
 #
 # godot-cpp cmake arguments
-#
-# GODOT_LIB_TYPE:				The type of the library ("SHARED", "STATIC"). Default: SHARED
+# GODOT_LIB_TYPE:			The type of the library ("SHARED", "STATIC"). Default: SHARED
 # GODOT_GDEXTENSION_DIR:		Path to the directory containing GDExtension interface header and API JSON file
 # GODOT_CPP_SYSTEM_HEADERS		Mark the header files as SYSTEM. This may be useful to supress warnings in projects including this one.
-# GODOT_CPP_WARNING_AS_ERROR		Treat any warnings as errors
+# GODOT_CPP_WARNING_AS_ERROR	Treat any warnings as errors
 # GODOT_CUSTOM_API_FILE:		Path to a custom GDExtension API JSON file (takes precedence over `gdextension_dir`)
-# FLOAT_PRECISION:			Floating-point precision level ("single", "double")
+# FLOAT_PRECISION:				Floating-point precision level ("single", "double")
 #
 # Android cmake arguments
 # CMAKE_TOOLCHAIN_FILE:			The path to the android cmake toolchain ($ANDROID_NDK/build/cmake/android.toolchain.cmake)
@@ -43,7 +42,7 @@ project(godot-cpp LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.12)
 
 option(GENERATE_TEMPLATE_GET_NODE "Generate a template version of the Node class's get_node." ON)
-option(GODOT_CPP_SYSTEM_HEADERS "Expose headers as SYSTEM." ON)
+option(GODOT_CPP_SYSTEM_HEADERS "Expose headers as SYSTEM." OFF)
 option(GODOT_CPP_WARNING_AS_ERROR "Treat warnings as errors" OFF)
 
 # Add path to modules
@@ -58,6 +57,8 @@ endif()
 set( compiler_is_clang "$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>>" )
 set( compiler_is_gnu "$<CXX_COMPILER_ID:GNU>" )
 set( compiler_is_msvc "$<CXX_COMPILER_ID:MSVC>" )
+=======
+>>>>>>> dc74197 ({cmake} Use the same compiler warnings as godot)
 
 # Default build type is Debug in the SConstruct
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -109,6 +110,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
 	add_definitions(-DNOMINMAX)
 else()  # GCC/Clang
+	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-R,'$$ORIGIN'")
+
+	if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+		set(GODOT_COMPILE_FLAGS "-fPIC")
+	endif()
 	set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -g")
 
 	if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -170,9 +176,6 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 		DEBUG_ENABLED
 		DEBUG_METHODS_ENABLED
 	>
-	$<${compiler_is_msvc}:
-		TYPED_METHOD_BIND
-	>
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
@@ -192,6 +195,11 @@ endif ()
 target_include_directories(${PROJECT_NAME} ${GODOT_CPP_SYSTEM_HEADERS_ATTRIBUTE} PUBLIC
 	include
 	${CMAKE_CURRENT_BINARY_DIR}/gen/include
+)
+
+# Put godot headers as SYSTEM PUBLIC to exclude warnings from irrelevant headers
+target_include_directories(${PROJECT_NAME}
+	SYSTEM PUBLIC
 	${GODOT_GDEXTENSION_DIR}
 )
 
