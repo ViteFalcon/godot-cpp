@@ -2,6 +2,7 @@
 # CMAKE_BUILD_TYPE:			Compilation target (Debug or Release defaults to Debug)
 #
 # godot-cpp cmake arguments
+# GODOT_LIB_TYPE:			The type of the library ("SHARED", "STATIC"). Default: SHARED
 # GODOT_GDEXTENSION_DIR:	Path to the directory containing GDExtension interface header and API JSON file
 # GODOT_CPP_SYSTEM_HEADERS	Mark the header files as SYSTEM. This may be useful to supress warnings in projects including this one.
 # GODOT_CUSTOM_API_FILE:	Path to a custom GDExtension API JSON file (takes precedence over `gdextension_dir`)
@@ -54,6 +55,10 @@ if(NOT DEFINED BITS)
 	endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
+if(NOT DEFINED GODOT_LIB_TYPE)
+	set(GODOT_LIB_TYPE "SHARED")
+endif()
+
 # Input from user for GDExtension interface header and the API JSON file
 set(GODOT_GDEXTENSION_DIR "gdextension" CACHE STRING "")
 set(GODOT_CUSTOM_API_FILE "" CACHE STRING "")
@@ -74,10 +79,15 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# using Visual Studio C++
 	set(GODOT_COMPILE_FLAGS "/EHsc /WX") # /GF /MP
 
-	if(CMAKE_BUILD_TYPE MATCHES Debug)
-		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /MDd") # /Od /RTC1 /Zi
+	if("${GODOT_LIB_TYPE}" STREQUAL "SHARED")
+		set(MTD_FLAG "/MD")
 	else()
-		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /MD /O2") # /Oy /GL /Gy
+		set(MTD_FLAG "/MT")
+	endif()
+	if(CMAKE_BUILD_TYPE MATCHES Debug)
+		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} ${MTD_FLAG}d") # /Od /RTC1 /Zi
+	else()
+		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} ${MTD_FLAG} /O2") # /Oy /GL /Gy
 		STRING(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 		string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 	endif(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -151,6 +161,7 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.h**)
 
 # Define our godot-cpp library
 add_library(${PROJECT_NAME}
+		${GODOT_LIB_TYPE}
 		${SOURCES}
 		${HEADERS}
 		${GENERATED_FILES_LIST}
