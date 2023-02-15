@@ -145,12 +145,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.c**)
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.h**)
 
 # Define our godot-cpp library
-<<<<<<< HEAD
-add_library(${PROJECT_NAME}
-		${GODOT_LIB_TYPE}
-=======
-add_library(${PROJECT_NAME} STATIC
->>>>>>> origin/master
+add_library(${PROJECT_NAME} ${GODOT_LIB_TYPE}
 		${SOURCES}
 		${HEADERS}
 		${GENERATED_FILES_LIST}
