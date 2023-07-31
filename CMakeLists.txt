@@ -2,7 +2,7 @@
 # CMAKE_BUILD_TYPE:			Compilation target (Debug or Release defaults to Debug)
 #
 # godot-cpp cmake arguments
-# GODOT_LIB_TYPE:			The type of the library ("SHARED", "STATIC"). Default: SHARED
+# GODOT_CPP_LIB_TYPE:			The type of the library ("SHARED", "STATIC"). Default: SHARED
 # GODOT_GDEXTENSION_DIR:		Path to the directory containing GDExtension interface header and API JSON file
 # GODOT_CPP_SYSTEM_HEADERS		Mark the header files as SYSTEM. This may be useful to supress warnings in projects including this one.
 # GODOT_CPP_WARNING_AS_ERROR	Treat any warnings as errors
@@ -11,9 +11,9 @@
 #
 # Android cmake arguments
 # CMAKE_TOOLCHAIN_FILE:			The path to the android cmake toolchain ($ANDROID_NDK/build/cmake/android.toolchain.cmake)
-# ANDROID_NDK:				The path to the android ndk root folder
+# ANDROID_NDK:					The path to the android ndk root folder
 # ANDROID_TOOLCHAIN_NAME:		The android toolchain (arm-linux-androideabi-4.9 or aarch64-linux-android-4.9 or x86-4.9 or x86_64-4.9)
-# ANDROID_PLATFORM:			The android platform version (android-23)
+# ANDROID_PLATFORM:				The android platform version (android-23)
 # More info here: https://godot.readthedocs.io/en/latest/development/compiling/compiling_for_android.html
 #
 # Examples
@@ -70,8 +70,8 @@ if(NOT DEFINED BITS)
 	endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
-if(NOT DEFINED GODOT_LIB_TYPE)
-	set(GODOT_LIB_TYPE "SHARED")
+if(NOT DEFINED GODOT_CPP_LIB_TYPE)
+	set(GODOT_CPP_LIB_TYPE "SHARED")
 endif()
 
 # Input from user for GDExtension interface header and the API JSON file
@@ -93,7 +93,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# using Visual Studio C++
 	set(GODOT_COMPILE_FLAGS "/EHsc /utf-8") # /GF /MP
 
-	if("${GODOT_LIB_TYPE}" STREQUAL "SHARED")
+	if("${GODOT_CPP_LIB_TYPE}" STREQUAL "SHARED")
 		set(MTD_FLAG "/MD")
 	else()
 		set(MTD_FLAG "/MT")
