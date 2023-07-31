@@ -38,8 +38,8 @@
 # Todo
 # Test build for Windows, Mac and mingw.
 
-project(godot-cpp LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.12)
+project(godot-cpp LANGUAGES CXX)
 
 option(GENERATE_TEMPLATE_GET_NODE "Generate a template version of the Node class's get_node." ON)
 option(GODOT_CPP_SYSTEM_HEADERS "Expose headers as SYSTEM." OFF)
@@ -91,7 +91,7 @@ set(GODOT_COMPILE_FLAGS )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# using Visual Studio C++
-	set(GODOT_COMPILE_FLAGS "/EHsc") # /GF /MP
+	set(GODOT_COMPILE_FLAGS "/EHsc /utf-8") # /GF /MP
 
 	if("${GODOT_LIB_TYPE}" STREQUAL "SHARED")
 		set(MTD_FLAG "/MD")
