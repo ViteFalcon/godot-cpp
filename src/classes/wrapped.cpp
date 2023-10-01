@@ -49,6 +49,25 @@ void Wrapped::_postinitialize() {
 }
 
 Wrapped::Wrapped(const StringName p_godot_class) {
+#ifdef HOT_RELOAD_ENABLED
+	if (unlikely(Wrapped::recreate_instance)) {
+		RecreateInstance *recreate_data = Wrapped::recreate_instance;
+		RecreateInstance *previous = nullptr;
+		while (recreate_data) {
+			if (recreate_data->wrapper == this) {
+				_owner = recreate_data->owner;
+				if (previous) {
+					previous->next = recreate_data->next;
+				} else {
+					Wrapped::recreate_instance = recreate_data->next;
+				}
+				return;
+			}
+			previous = recreate_data;
+			recreate_data = recreate_data->next;
+		}
+	}
+#endif
 	_owner = godot::internal::gdextension_interface_classdb_construct_object(reinterpret_cast<GDExtensionConstStringNamePtr>(p_godot_class._native_ptr()));
 }
 
@@ -59,5 +78,34 @@ Wrapped::Wrapped(GodotObject *p_godot_object) {
 void postinitialize_handler(Wrapped *p_wrapped) {
 	p_wrapped->_postinitialize();
 }
+
+namespace internal {
+
+GDExtensionPropertyInfo *create_c_property_list(const ::godot::List<::godot::PropertyInfo> &plist_cpp, uint32_t *r_size) {
+	GDExtensionPropertyInfo *plist = nullptr;
+	// Linked list size can be expensive to get so we cache it
+	const uint32_t plist_size = plist_cpp.size();
+	if (r_size != nullptr) {
+		*r_size = plist_size;
+	}
+	plist = reinterpret_cast<GDExtensionPropertyInfo *>(memalloc(sizeof(GDExtensionPropertyInfo) * plist_size));
+	unsigned int i = 0;
+	for (const ::godot::PropertyInfo &E : plist_cpp) {
+		plist[i].type = static_cast<GDExtensionVariantType>(E.type);
+		plist[i].name = E.name._native_ptr();
+		plist[i].hint = E.hint;
+		plist[i].hint_string = E.hint_string._native_ptr();
+		plist[i].class_name = E.class_name._native_ptr();
+		plist[i].usage = E.usage;
+		++i;
+	}
+	return plist;
+}
+
+void free_c_property_list(GDExtensionPropertyInfo *plist) {
+	memfree(plist);
+}
+
+} // namespace internal
 
 } // namespace godot

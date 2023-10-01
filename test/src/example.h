@@ -18,7 +18,10 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/image.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
+#include <godot_cpp/classes/tile_map.hpp>
+#include <godot_cpp/classes/tile_set.hpp>
 #include <godot_cpp/classes/viewport.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include <godot_cpp/core/binder_common.hpp>
 
@@ -63,6 +66,7 @@ protected:
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 	bool _property_can_revert(const StringName &p_name) const;
 	bool _property_get_revert(const StringName &p_name, Variant &r_property) const;
+	void _validate_property(PropertyInfo &p_property) const;
 
 	String _to_string() const;
 
@@ -117,7 +121,34 @@ public:
 	Example *test_node_argument(Example *p_node) const;
 	String test_string_ops() const;
 	String test_str_utility() const;
+	bool test_string_is_fourty_two(const String &p_str) const;
+	String test_string_resize(String p_original) const;
 	int test_vector_ops() const;
+
+	bool test_object_cast_to_node(Object *p_object) const;
+	bool test_object_cast_to_control(Object *p_object) const;
+	bool test_object_cast_to_example(Object *p_object) const;
+
+	Vector2i test_variant_vector2i_conversion(const Variant &p_variant) const;
+	int test_variant_int_conversion(const Variant &p_variant) const;
+	float test_variant_float_conversion(const Variant &p_variant) const;
+
+	void test_add_child(Node *p_node);
+	void test_set_tileset(TileMap *p_tilemap, const Ref<TileSet> &p_tileset) const;
+
+	Variant test_variant_call(Variant p_variant);
+
+	Callable test_callable_mp();
+	Callable test_callable_mp_ret();
+	Callable test_callable_mp_retc() const;
+	Callable test_callable_mp_static() const;
+	Callable test_callable_mp_static_ret() const;
+
+	void unbound_method1(Object *p_object, String p_string, int p_int);
+	String unbound_method2(Object *p_object, String p_string, int p_int);
+	String unbound_method3(Object *p_object, String p_string, int p_int) const;
+	static void unbound_static_method1(Example *p_object, String p_string, int p_int);
+	static String unbound_static_method2(Object *p_object, String p_string, int p_int);
 
 	BitField<Flags> test_bitfield(BitField<Flags> flags);
 

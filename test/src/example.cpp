@@ -117,6 +117,14 @@ bool Example::_property_get_revert(const StringName &p_name, Variant &r_property
 	}
 };
 
+void Example::_validate_property(PropertyInfo &p_property) const {
+	String name = p_property.name;
+	// Test hiding the "mouse_filter" property from the editor.
+	if (name == "mouse_filter") {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
+}
+
 void Example::_bind_methods() {
 	// Methods.
 	ClassDB::bind_method(D_METHOD("simple_func"), &Example::simple_func);
@@ -138,7 +146,28 @@ void Example::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("test_node_argument"), &Example::test_node_argument);
 	ClassDB::bind_method(D_METHOD("test_string_ops"), &Example::test_string_ops);
 	ClassDB::bind_method(D_METHOD("test_str_utility"), &Example::test_str_utility);
+	ClassDB::bind_method(D_METHOD("test_string_is_fourty_two"), &Example::test_string_is_fourty_two);
+	ClassDB::bind_method(D_METHOD("test_string_resize"), &Example::test_string_resize);
 	ClassDB::bind_method(D_METHOD("test_vector_ops"), &Example::test_vector_ops);
+
+	ClassDB::bind_method(D_METHOD("test_object_cast_to_node", "object"), &Example::test_object_cast_to_node);
+	ClassDB::bind_method(D_METHOD("test_object_cast_to_control", "object"), &Example::test_object_cast_to_control);
+	ClassDB::bind_method(D_METHOD("test_object_cast_to_example", "object"), &Example::test_object_cast_to_example);
+
+	ClassDB::bind_method(D_METHOD("test_variant_vector2i_conversion", "variant"), &Example::test_variant_vector2i_conversion);
+	ClassDB::bind_method(D_METHOD("test_variant_int_conversion", "variant"), &Example::test_variant_int_conversion);
+	ClassDB::bind_method(D_METHOD("test_variant_float_conversion", "variant"), &Example::test_variant_float_conversion);
+
+	ClassDB::bind_method(D_METHOD("test_add_child", "node"), &Example::test_add_child);
+	ClassDB::bind_method(D_METHOD("test_set_tileset", "tilemap", "tileset"), &Example::test_set_tileset);
+
+	ClassDB::bind_method(D_METHOD("test_variant_call", "variant"), &Example::test_variant_call);
+
+	ClassDB::bind_method(D_METHOD("test_callable_mp"), &Example::test_callable_mp);
+	ClassDB::bind_method(D_METHOD("test_callable_mp_ret"), &Example::test_callable_mp_ret);
+	ClassDB::bind_method(D_METHOD("test_callable_mp_retc"), &Example::test_callable_mp_retc);
+	ClassDB::bind_method(D_METHOD("test_callable_mp_static"), &Example::test_callable_mp_static);
+	ClassDB::bind_method(D_METHOD("test_callable_mp_static_ret"), &Example::test_callable_mp_static_ret);
 
 	ClassDB::bind_method(D_METHOD("test_bitfield", "flags"), &Example::test_bitfield);
 
@@ -299,6 +328,20 @@ String Example::test_str_utility() const {
 	return UtilityFunctions::str("Hello, ", "World", "! The answer is ", 42);
 }
 
+bool Example::test_string_is_fourty_two(const String &p_string) const {
+	return strcmp(p_string.utf8().ptr(), "fourty two") == 0;
+}
+
+String Example::test_string_resize(String p_string) const {
+	int orig_len = p_string.length();
+	p_string.resize(orig_len + 3);
+	char32_t *data = p_string.ptrw();
+	data[orig_len + 0] = '!';
+	data[orig_len + 1] = '?';
+	data[orig_len + 2] = '\0';
+	return p_string;
+}
+
 int Example::test_vector_ops() const {
 	PackedInt32Array arr;
 	arr.push_back(10);
@@ -310,6 +353,64 @@ int Example::test_vector_ops() const {
 		ret += E;
 	}
 	return ret;
+}
+
+Callable Example::test_callable_mp() {
+	return callable_mp(this, &Example::unbound_method1);
+}
+
+Callable Example::test_callable_mp_ret() {
+	return callable_mp(this, &Example::unbound_method2);
+}
+
+Callable Example::test_callable_mp_retc() const {
+	return callable_mp(this, &Example::unbound_method3);
+}
+
+Callable Example::test_callable_mp_static() const {
+	return callable_mp_static(&Example::unbound_static_method1);
+}
+
+Callable Example::test_callable_mp_static_ret() const {
+	return callable_mp_static(&Example::unbound_static_method2);
+}
+
+void Example::unbound_method1(Object *p_object, String p_string, int p_int) {
+	String test = "unbound_method1: ";
+	test += p_object->get_class();
+	test += " - " + p_string;
+	emit_custom_signal(test, p_int);
+}
+
+String Example::unbound_method2(Object *p_object, String p_string, int p_int) {
+	String test = "unbound_method2: ";
+	test += p_object->get_class();
+	test += " - " + p_string;
+	test += " - " + itos(p_int);
+	return test;
+}
+
+String Example::unbound_method3(Object *p_object, String p_string, int p_int) const {
+	String test = "unbound_method3: ";
+	test += p_object->get_class();
+	test += " - " + p_string;
+	test += " - " + itos(p_int);
+	return test;
+}
+
+void Example::unbound_static_method1(Example *p_object, String p_string, int p_int) {
+	String test = "unbound_static_method1: ";
+	test += p_object->get_class();
+	test += " - " + p_string;
+	p_object->emit_custom_signal(test, p_int);
+}
+
+String Example::unbound_static_method2(Object *p_object, String p_string, int p_int) {
+	String test = "unbound_static_method2: ";
+	test += p_object->get_class();
+	test += " - " + p_string;
+	test += " - " + itos(p_int);
+	return test;
 }
 
 int Example::test_tarray_arg(const TypedArray<int64_t> &p_array) {
@@ -341,6 +442,42 @@ Dictionary Example::test_dictionary() const {
 
 Example *Example::test_node_argument(Example *p_node) const {
 	return p_node;
+}
+
+bool Example::test_object_cast_to_node(Object *p_object) const {
+	return Object::cast_to<Node>(p_object) != nullptr;
+}
+
+bool Example::test_object_cast_to_control(Object *p_object) const {
+	return Object::cast_to<Control>(p_object) != nullptr;
+}
+
+bool Example::test_object_cast_to_example(Object *p_object) const {
+	return Object::cast_to<Example>(p_object) != nullptr;
+}
+
+Vector2i Example::test_variant_vector2i_conversion(const Variant &p_variant) const {
+	return p_variant;
+}
+
+int Example::test_variant_int_conversion(const Variant &p_variant) const {
+	return p_variant;
+}
+
+float Example::test_variant_float_conversion(const Variant &p_variant) const {
+	return p_variant;
+}
+
+void Example::test_add_child(Node *p_node) {
+	add_child(p_node);
+}
+
+void Example::test_set_tileset(TileMap *p_tilemap, const Ref<TileSet> &p_tileset) const {
+	p_tilemap->set_tileset(p_tileset);
+}
+
+Variant Example::test_variant_call(Variant p_variant) {
+	return p_variant.call("test", "hello");
 }
 
 BitField<Example::Flags> Example::test_bitfield(BitField<Flags> flags) {

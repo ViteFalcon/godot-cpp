@@ -8,7 +8,7 @@ def exists(env):
 def generate(env):
     if env["arch"] not in ("wasm32"):
         print("Only wasm32 supported on web. Exiting.")
-        Exit()
+        env.Exit(1)
 
     if "EM_CONFIG" in os.environ:
         env["ENV"] = os.environ
@@ -43,3 +43,5 @@ def generate(env):
         env.Append(CCFLAGS=["-O0", "-g"])
     elif env["target"] == "release":
         env.Append(CCFLAGS=["-O3"])
+
+    env.Append(CPPDEFINES=["WEB_ENABLED", "UNIX_ENABLED"])
